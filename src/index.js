@@ -11,7 +11,7 @@ module.exports = function(page) {
     const toDataURL = HTMLCanvasElement.prototype.toDataURL;
     const getImageData = CanvasRenderingContext2D.prototype.getImageData;
     //
-    var noisify = function (canvas, context) {
+    const noisify = function (canvas, context) {
       const shift = {
         r: Math.floor(Math.random() * 10) - 5,
         g: Math.floor(Math.random() * 10) - 5,
@@ -22,7 +22,7 @@ module.exports = function(page) {
       const width = canvas.width,
         height = canvas.height;
       const imageData = getImageData.apply(context, [0, 0, width, height]);
-      for (let i = 0; i < height; i++) {
+      for (let i = 0; i < height; i++) 
         for (let j = 0; j < width; j++) {
           const n = i * (width * 4) + j * 4;
           imageData.data[n + 0] = imageData.data[n + 0] + shift.r;
@@ -30,7 +30,7 @@ module.exports = function(page) {
           imageData.data[n + 2] = imageData.data[n + 2] + shift.b;
           imageData.data[n + 3] = imageData.data[n + 3] + shift.a;
         }
-      }
+      
       //
       context.putImageData(imageData, 0, 0);
     };
@@ -60,27 +60,27 @@ module.exports = function(page) {
       }
     );
     //Webgl def
-    var config = {
+    const config = {
       random: {
         value: function () {
           return Math.random();
         },
         item: function (e) {
-          var rand = e.length * config.random.value();
+          const rand = e.length * config.random.value();
           return e[Math.floor(rand)];
         },
         array: function (e) {
-          var rand = config.random.item(e);
+          const rand = config.random.item(e);
           return new Int32Array([rand, rand]);
         },
         items: function (e, n) {
-          var length = e.length;
-          var result = new Array(n);
-          var taken = new Array(length);
+          let length = e.length;
+          const result = new Array(n);
+          const taken = new Array(length);
           if (n > length) n = length;
           //
           while (n--) {
-            var i = Math.floor(config.random.value() * length);
+            const i = Math.floor(config.random.value() * length);
             result[n] = e[i in taken ? taken[i] : i];
             taken[i] = --length in taken ? taken[length] : length;
           }
@@ -94,9 +94,8 @@ module.exports = function(page) {
             const bufferData = target.prototype.bufferData;
             Object.defineProperty(target.prototype, 'bufferData', {
               value: function () {
-                var index = Math.floor(config.random.value() * 10);
-                var noise =
-                  0.1 * config.random.value() * arguments[1][index];
+                const index = Math.floor(config.random.value() * 10);
+                const noise =                  0.1 * config.random.value() * arguments[1][index];
                 arguments[1][index] = arguments[1][index] + noise;
                 //
                 return bufferData.apply(this, arguments);
@@ -107,7 +106,7 @@ module.exports = function(page) {
             const getParameter = target.prototype.getParameter;
             Object.defineProperty(target.prototype, 'getParameter', {
               value: function () {
-                var float32array = new Float32Array([1, 8192]);
+                const float32array = new Float32Array([1, 8192]);
                 //
                 if (arguments[0] === 3415) return 0;
                 else if (arguments[0] === 3414) return 24;
@@ -120,29 +119,19 @@ module.exports = function(page) {
                 else if (arguments[0] === 34047 || arguments[0] === 34921)
                   return config.random.items([2, 4, 8, 16]);
                 else if (
-                  arguments[0] === 7937 ||
-                  arguments[0] === 33901 ||
-                  arguments[0] === 33902
+                  arguments[0] === 7937 ||                  arguments[0] === 33901 ||                  arguments[0] === 33902
                 )
                   return float32array;
                 else if (
-                  arguments[0] === 34930 ||
-                  arguments[0] === 36348 ||
-                  arguments[0] === 35660
+                  arguments[0] === 34930 ||                  arguments[0] === 36348 ||                  arguments[0] === 35660
                 )
                   return config.random.item([16, 32, 64]);
                 else if (
-                  arguments[0] === 34076 ||
-                  arguments[0] === 34024 ||
-                  arguments[0] === 3379
+                  arguments[0] === 34076 ||                  arguments[0] === 34024 ||                  arguments[0] === 3379
                 )
                   return config.random.item([16384, 32768]);
                 else if (
-                  arguments[0] === 3413 ||
-                  arguments[0] === 3412 ||
-                  arguments[0] === 3411 ||
-                  arguments[0] === 3410 ||
-                  arguments[0] === 34852
+                  arguments[0] === 3413 ||                  arguments[0] === 3412 ||                  arguments[0] === 3411 ||                  arguments[0] === 3410 ||                  arguments[0] === 34852
                 )
                   return config.random.item([2, 4, 8, 16]);
                 else
@@ -175,9 +164,9 @@ module.exports = function(page) {
     config.spoof.webgl.parameter(WebGLRenderingContext);
     config.spoof.webgl.parameter(WebGL2RenderingContext);
     // Font def
-    var rand = {
+    const rand = {
       noise: function () {
-        var SIGN = Math.random() < Math.random() ? -1 : 1;
+        const SIGN = Math.random() < Math.random() ? -1 : 1;
         return Math.floor(Math.random() + SIGN * Math.random());
       },
       sign: function () {
@@ -216,10 +205,9 @@ module.exports = function(page) {
             const results_1 = getChannelData.apply(this, arguments);
             if (context.BUFFER !== results_1) {
               context.BUFFER = results_1;
-              for (var i = 0; i < results_1.length; i += 100) {
-                let index = Math.floor(Math.random() * i);
-                results_1[index] =
-                  results_1[index] + Math.random() * 0.0000001;
+              for (let i = 0; i < results_1.length; i += 100) {
+                const index = Math.floor(Math.random() * i);
+                results_1[index] =                  results_1[index] + Math.random() * 0.0000001;
               }
             }
             //
@@ -232,8 +220,7 @@ module.exports = function(page) {
         Object.defineProperty(e.prototype.__proto__, 'createAnalyser', {
           value: function () {
             const results_2 = createAnalyser.apply(this, arguments);
-            const getFloatFrequencyData =
-              results_2.__proto__.getFloatFrequencyData;
+            const getFloatFrequencyData =              results_2.__proto__.getFloatFrequencyData;
             Object.defineProperty(
               results_2.__proto__,
               'getFloatFrequencyData',
@@ -243,10 +230,9 @@ module.exports = function(page) {
                     this,
                     arguments
                   );
-                  for (var i = 0; i < arguments[0].length; i += 100) {
-                    let index = Math.floor(Math.random() * i);
-                    arguments[0][index] =
-                      arguments[0][index] + Math.random() * 0.1;
+                  for (let i = 0; i < arguments[0].length; i += 100) {
+                    const index = Math.floor(Math.random() * i);
+                    arguments[0][index] =                      arguments[0][index] + Math.random() * 0.1;
                   }
                   //
                   return results_3;
