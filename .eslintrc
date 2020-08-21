@@ -1,0 +1,27 @@
+{
+  "env": {
+    "node": true,
+    "es6": true
+  },
+  "rules": {
+    "brace-style": ["error", "stroustrup"],
+    "comma-spacing": ["error", { "before": false, "after": true }],
+    "curly": ["error", "multi"],
+    "indent": ["error", 2],
+    "key-spacing": [2, { "beforeColon": false, "afterColon": true}],
+    "no-var": "error",
+    "object-curly-newline": ["error", { "multiline": true }],
+    "operator-linebreak": ["error", "none"],
+    "prefer-const": "error",
+    "quotes": [1, "single"],
+    "semi": [1, "always"],
+    "space-before-blocks": "error",
+    "space-infix-ops": ["error", { "int32Hint": false }],
+    "switch-colon-spacing": ["error", { "after": true, "before": false}],
+    "vars-on-top": "error"
+  },
+  "parserOptions": {
+    "ecmaVersion": 2017,
+    "sourceType": "module"
+  }
+}

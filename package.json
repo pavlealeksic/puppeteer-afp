@@ -1,0 +1,44 @@
+{
+  "name": "puppeteer-afp",
+  "version": "1.0.0",
+  "description": "Stop website fingerprinting techniques",
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint src --fix",
+    "test": "mocha --reporter spec test/**/*.spec.js",
+    "preversion": "npm run lint",
+    "prepublishOnly": "npm version patch && git push --tags && git push"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pavlealeksic/puppeteer-afp.git"
+  },
+  "keywords": [
+    "npm",
+    "puppeteer",
+    "security",
+    "nodejs",
+    "stealth",
+    "detection-evasion",
+    "anti-fingerprint",
+    "scraping",
+    "crawler",
+    "chrome",
+    "headless",
+    "scraping",
+    "browser automation"
+  ],
+  "author": "Pavle Aleksic <pavlealeksic@live.com> (https://twitter.com/aleksicpaja)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/pavlealeksic/puppeteer-afp/issues"
+  },
+  "homepage": "https://github.com/pavlealeksic/puppeteer-afp#readme",
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "coveralls": "^3.0.3",
+    "eslint": "^5.16.0",
+    "mocha": "^6.1.4",
+    "nyc": "^14.0.0"
+  }
+}
