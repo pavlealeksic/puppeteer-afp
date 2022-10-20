@@ -250,6 +250,8 @@ module.exports = function(page) {
     context.createAnalyser(AudioContext);
     context.getChannelData(OfflineAudioContext);
     context.createAnalyser(OfflineAudioContext);
+    // Web RTC
+    navigator.mediaDevices.getUserMedia = navigator.webkitGetUserMedia = navigator.mozGetUserMedia = navigator.getUserMedia = webkitRTCPeerConnection = RTCPeerConnection = MediaStreamTrack = undefined;
   });
   return page;
 };
