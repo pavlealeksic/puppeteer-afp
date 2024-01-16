@@ -4,8 +4,9 @@
  * Randomizes the puppeteer fingerprint
  * @return {object}
  */
-module.exports = function(page) {
+module.exports = function (page) {
   page.evaluateOnNewDocument(() => {
+
     // Canvas Def
     const toBlob = HTMLCanvasElement.prototype.toBlob;
     const toDataURL = HTMLCanvasElement.prototype.toDataURL;
@@ -22,7 +23,7 @@ module.exports = function(page) {
       const width = canvas.width,
         height = canvas.height;
       const imageData = getImageData.apply(context, [0, 0, width, height]);
-      for (let i = 0; i < height; i++) 
+      for (let i = 0; i < height; i++)
         for (let j = 0; j < width; j++) {
           const n = i * (width * 4) + j * 4;
           imageData.data[n + 0] = imageData.data[n + 0] + shift.r;
@@ -30,7 +31,7 @@ module.exports = function(page) {
           imageData.data[n + 2] = imageData.data[n + 2] + shift.b;
           imageData.data[n + 3] = imageData.data[n + 3] + shift.a;
         }
-      
+
       //
       context.putImageData(imageData, 0, 0);
     };
@@ -95,7 +96,7 @@ module.exports = function(page) {
             Object.defineProperty(target.prototype, 'bufferData', {
               value: function () {
                 const index = Math.floor(config.random.value() * 10);
-                const noise =                  0.1 * config.random.value() * arguments[1][index];
+                const noise = 0.1 * config.random.value() * arguments[1][index];
                 arguments[1][index] = arguments[1][index] + noise;
                 //
                 return bufferData.apply(this, arguments);
@@ -119,19 +120,19 @@ module.exports = function(page) {
                 else if (arguments[0] === 34047 || arguments[0] === 34921)
                   return config.random.items([2, 4, 8, 16]);
                 else if (
-                  arguments[0] === 7937 ||                  arguments[0] === 33901 ||                  arguments[0] === 33902
+                  arguments[0] === 7937 || arguments[0] === 33901 || arguments[0] === 33902
                 )
                   return float32array;
                 else if (
-                  arguments[0] === 34930 ||                  arguments[0] === 36348 ||                  arguments[0] === 35660
+                  arguments[0] === 34930 || arguments[0] === 36348 || arguments[0] === 35660
                 )
                   return config.random.item([16, 32, 64]);
                 else if (
-                  arguments[0] === 34076 ||                  arguments[0] === 34024 ||                  arguments[0] === 3379
+                  arguments[0] === 34076 || arguments[0] === 34024 || arguments[0] === 3379
                 )
                   return config.random.item([16384, 32768]);
                 else if (
-                  arguments[0] === 3413 ||                  arguments[0] === 3412 ||                  arguments[0] === 3411 ||                  arguments[0] === 3410 ||                  arguments[0] === 34852
+                  arguments[0] === 3413 || arguments[0] === 3412 || arguments[0] === 3411 || arguments[0] === 3410 || arguments[0] === 34852
                 )
                   return config.random.item([2, 4, 8, 16]);
                 else
@@ -207,7 +208,7 @@ module.exports = function(page) {
               context.BUFFER = results_1;
               for (let i = 0; i < results_1.length; i += 100) {
                 const index = Math.floor(Math.random() * i);
-                results_1[index] =                  results_1[index] + Math.random() * 0.0000001;
+                results_1[index] = results_1[index] + Math.random() * 0.0000001;
               }
             }
             //
@@ -220,7 +221,7 @@ module.exports = function(page) {
         Object.defineProperty(e.prototype.__proto__, 'createAnalyser', {
           value: function () {
             const results_2 = createAnalyser.apply(this, arguments);
-            const getFloatFrequencyData =              results_2.__proto__.getFloatFrequencyData;
+            const getFloatFrequencyData = results_2.__proto__.getFloatFrequencyData;
             Object.defineProperty(
               results_2.__proto__,
               'getFloatFrequencyData',
@@ -232,7 +233,7 @@ module.exports = function(page) {
                   );
                   for (let i = 0; i < arguments[0].length; i += 100) {
                     const index = Math.floor(Math.random() * i);
-                    arguments[0][index] =                      arguments[0][index] + Math.random() * 0.1;
+                    arguments[0][index] = arguments[0][index] + Math.random() * 0.1;
                   }
                   //
                   return results_3;
@@ -252,6 +253,55 @@ module.exports = function(page) {
     context.createAnalyser(OfflineAudioContext);
     // Web RTC
     navigator.mediaDevices.getUserMedia = navigator.webkitGetUserMedia = navigator.mozGetUserMedia = navigator.getUserMedia = webkitRTCPeerConnection = RTCPeerConnection = MediaStreamTrack = undefined;
+
+    // update the plugins
+
+
+
+    if (window.performance) {
+      window.performance.memory = {
+        jsHeapSizeLimit: Math.floor(Math.random() * 1000000000) + 900000000,
+        totalJSHeapSize: Math.floor(Math.random() * 800000000) + 100000000,
+        usedJSHeapSize: Math.floor(Math.random() * 700000000) + 100000000,
+      };
+    }
+    Object.defineProperty(navigator, 'deviceMemory', {
+      get: () => Math.floor(Math.random() * 8) + 4, 
+    });
+
+
+    Object.defineProperty(navigator, 'userAgent', {
+      get: () => 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+    });
+
+
+    const getParameter = WebGLRenderingContext.prototype.getParameter;
+    WebGLRenderingContext.prototype.getParameter = function (parameter) {
+      // UNMASKED_VENDOR_WEBGL
+      if (parameter === 37445) {
+        return 'Intel Open Source Technology Center';
+      }
+      // UNMASKED_RENDERER_WEBGL
+      if (parameter === 37446) {
+        return 'Mesa DRI Intel(R) Ivybridge Mobile ';
+      }
+
+      return getParameter.call(this, parameter);
+    };
+    
+    // @ts-ignore
+    window.chrome = {
+      runtime: {},
+    };
+
+    window.navigator.chrome = {
+      runtime: {},
+      // etc.
+    };
+    const newProto = navigator.__proto__;
+    delete newProto.webdriver;
+    navigator.__proto__ = newProto;
+
   });
   return page;
 };
