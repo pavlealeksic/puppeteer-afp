@@ -63,3 +63,5 @@ typings/
 # webstorm
 .idea/
 test.js
+
+.DS_Store

@@ -7,7 +7,7 @@
     "brace-style": ["error", "stroustrup"],
     "comma-spacing": ["error", { "before": false, "after": true }],
     "curly": ["error", "multi"],
-    "indent": ["error", 2],
+    "indent": ["error", 4],
     "key-spacing": [2, { "beforeColon": false, "afterColon": true}],
     "no-var": "error",
     "object-curly-newline": ["error", { "multiline": true }],

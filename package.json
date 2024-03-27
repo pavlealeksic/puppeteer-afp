@@ -1,6 +1,6 @@
 {
   "name": "puppeteer-afp",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Stop website fingerprinting techniques",
   "main": "index.js",
   "scripts": {
