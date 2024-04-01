@@ -22,7 +22,7 @@ const puppeteerAfp = require('puppeteer-afp');
 
 const browser = await puppeteer.launch();
 // I always use this method to get the active page, and not to have to open a new tab
-const initPage = (await browser.pages())[0];
+const pageToProtect = (await browser.pages())[0];
 // For these options, all are optional, and you dont have to use them, these are used just if you want to reuse a fingerprint
 const options = {
         canvasRgba: [0, 0, 0, 0], //all these numbers can be from -5 to 5
@@ -68,9 +68,9 @@ const options = {
             createAnalyserResultRandom: 0.7659530895341677, // all values of Math.random() can be used
         },
     };
-// this function must run on the initial page, and all other tabs will be protected and using the fingerprint, do not use the initPage for anything
-await puppeteerAfp(initPage, options);
-const page = browser.newPage()
+// run this function on any page you want to protect, so pages loaded on this page after this is done will be protected
+await puppeteerAfp(pageToProtect, options);
+
 ```
 
 Go to https://webbrowsertools.com with your browser and check your fingerprints
