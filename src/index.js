@@ -4,7 +4,7 @@
  * Randomizes the puppeteer fingerprint
  * @return {object}
  */
-module.exports = function (page, options = {}) {
+const protectPage = (page, options = {}) => {
 
     page.evaluateOnNewDocument(
         (options) => {
@@ -313,4 +313,19 @@ module.exports = function (page, options = {}) {
         { options }
     );
     return page;
+};
+
+const protectedBrowser = async (browser, options = {}) => {
+    const protectedBrowser = browser;
+    protectedBrowser.newProtectedPage = async () => {
+        const page = await browser.newPage();
+        await protectPage(page, options);
+        return page;
+    };
+    return protectedBrowser;
+};
+
+module.exports = {
+    protectPage,
+    protectedBrowser,
 };

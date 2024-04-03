@@ -2,10 +2,7 @@
 Stop websites fingerprinting your puppeteer browser instances.
 
 This covers:
-Canvas Fingerprinting
-WebGL Fingerprinting
-AudioContext Fingerprinting
-Font Fingerprinting
+Canvas Fingerprinting, WebGL Fingerprinting, AudioContext Fingerprinting, Font Fingerprinting
 
 ## Installation
 
@@ -18,12 +15,16 @@ npm install puppeteer-afp
 
 ```js
 const puppeteer = require('puppeteer');
-const puppeteerAfp = require('puppeteer-afp');
+const {
+    protectPage,
+    protectedBrowser,
+} = require('puppeteer-afp');
 
 const browser = await puppeteer.launch();
 // I always use this method to get the active page, and not to have to open a new tab
 const pageToProtect = (await browser.pages())[0];
-// For these options, all are optional, and you dont have to use them, these are used just if you want to reuse a fingerprint
+// For these options, all are optional, and you dont have to use them, 
+// these are used just if you want to reuse a fingerprint
 const options = {
         canvasRgba: [0, 0, 0, 0], //all these numbers can be from -5 to 5
         webglData: {
@@ -68,8 +69,15 @@ const options = {
             createAnalyserResultRandom: 0.7659530895341677, // all values of Math.random() can be used
         },
     };
-// run this function on any page you want to protect, so pages loaded on this page after this is done will be protected
-await puppeteerAfp(pageToProtect, options);
+// run this function on any page you want to protect, so pages loaded on 
+// this page after this is done will be protected
+await protectPage(pageToProtect, options);
+
+//Another way of using it is to protect automatically a new tab, 
+//and if you want the fingerprint to change, just remove the options parameter:
+const protectedChromium = await protectedBrowser(browser, options);
+//and then we use the following command:
+const protectedPage = protectedChromium.newProtectedPage()
 
 ```
 
