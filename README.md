@@ -68,6 +68,7 @@ const options = {
             createAnalyserIndexRandom: 0.7659530895341677, // all values of Math.random() can be used
             createAnalyserResultRandom: 0.7659530895341677, // all values of Math.random() can be used
         },
+        webRTCProtect: true //this option is used to disable or enable WebRTC disabling by destroying get user media
     };
 // run this function on any page you want to protect, so pages loaded on 
 // this page after this is done will be protected
