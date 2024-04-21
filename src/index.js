@@ -294,18 +294,7 @@ const protectPage = (page, options = {}) => {
             context.getChannelData(AudioBuffer);
             context.createAnalyser(AudioContext);
             context.createAnalyser(OfflineAudioContext);
-            // Web RTC
             if (window.afpOptions.options.webRTCProtect) navigator.mediaDevices.getUserMedia =            navigator.webkitGetUserMedia =            navigator.mozGetUserMedia =            navigator.getUserMedia =            webkitRTCPeerConnection =            RTCPeerConnection =            MediaStreamTrack =                undefined;
-
-            Object.defineProperty(navigator, 'deviceMemory', {
-                get: () =>
-                    window.afpOptions.options.deviceMemory                    ? window.afpOptions.options.deviceMemory                    : Math.floor(Math.random() * 8) + 4,
-            });
-
-            window.chrome = { runtime: {} };
-
-            window.navigator.chrome = {runtime: {}, };
-            //remove webdriver
             const newProto = navigator.__proto__;
             delete newProto.webdriver;
             navigator.__proto__ = newProto;
