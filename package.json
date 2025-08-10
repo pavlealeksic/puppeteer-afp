@@ -1,13 +1,34 @@
 {
   "name": "puppeteer-afp",
-  "version": "1.1.6",
-  "description": "Stop website fingerprinting techniques",
-  "main": "index.js",
+  "version": "2.0.0",
+  "description": "Advanced anti-fingerprinting plugin with complete browser engine emulation for Puppeteer",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*",
+    "src/**/*",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
-    "lint": "eslint src --fix",
-    "test": "mocha --reporter spec test/**/*.spec.js",
-    "preversion": "npm run lint",
-    "prepublishOnly": "npm version patch && git push --tags && git push"
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "clean": "rm -rf dist coverage",
+    "lint": "eslint src --ext .ts --fix",
+    "lint:check": "eslint src --ext .ts",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:integration": "jest --testPathPattern=integration",
+    "test:detectors": "jest test/real-world-detectors.test.ts --verbose",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\"",
+    "typecheck": "tsc --noEmit",
+    "prebuild": "npm run clean",
+    "prepublishOnly": "npm run build && npm run test && npm run lint:check",
+    "preversion": "npm run test && npm run lint:check",
+    "version": "npm run build && git add -A dist",
+    "postversion": "git push && git push --tags"
   },
   "repository": {
     "type": "git",
@@ -25,8 +46,25 @@
     "crawler",
     "chrome",
     "headless",
-    "scraping",
-    "browser automation"
+    "browser automation",
+    "typescript",
+    "fingerprinting",
+    "privacy",
+    "canvas",
+    "webgl",
+    "audio",
+    "webrtc",
+    "bot-detection",
+    "engine-emulation",
+    "javascript-engine",
+    "css-engine",
+    "dom-engine",
+    "hardware-emulation",
+    "network-protection",
+    "v8-emulation",
+    "blink-emulation",
+    "gecko-emulation",
+    "webkit-emulation"
   ],
   "author": "Pavle Aleksic <pavlealeksic@live.com> (https://twitter.com/aleksicpaja)",
   "license": "MIT",
@@ -34,11 +72,30 @@
     "url": "https://github.com/pavlealeksic/puppeteer-afp/issues"
   },
   "homepage": "https://github.com/pavlealeksic/puppeteer-afp#readme",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "dependencies": {
+    "joi": "^17.13.3",
+    "winston": "^3.17.0"
+  },
   "devDependencies": {
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.10.6",
+    "@typescript-eslint/eslint-plugin": "^8.39.0",
+    "@typescript-eslint/parser": "^8.39.0",
     "chai": "^4.2.0",
     "coveralls": "^3.0.3",
-    "eslint": "^5.16.0",
+    "eslint": "^9.33.0",
+    "jest": "^29.7.0",
     "mocha": "^6.1.4",
-    "nyc": "^14.0.0"
+    "nyc": "^14.0.0",
+    "prettier": "^3.6.2",
+    "puppeteer": "^24.16.0",
+    "ts-jest": "^29.2.5",
+    "typescript": "^5.7.3"
+  },
+  "peerDependencies": {
+    "puppeteer": ">=10.0.0"
   }
 }
