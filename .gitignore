@@ -65,3 +65,8 @@ typings/
 test.js
 
 .DS_Store
+# Build output (published via npm, not committed)
+dist/
+
+# Fingerprint vault
+.puppeteer-afp/

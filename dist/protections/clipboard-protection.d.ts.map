@@ -1,1 +1,0 @@
-{"version":3,"file":"clipboard-protection.d.ts","sourceRoot":"","sources":["../../src/protections/clipboard-protection.ts"],"names":[],"mappings":"AAAA;;;GAGG;AAEH,qBAAa,mBAAmB;IAC9B,MAAM,CAAC,yBAAyB,IAAI,MAAM;IA4F1C,MAAM,CAAC,yBAAyB,IAAI,MAAM;IA8F1C,MAAM,CAAC,wBAAwB,IAAI,MAAM;IA8EzC,MAAM,CAAC,uBAAuB,IAAI,MAAM;IAyDxC,MAAM,CAAC,0BAA0B,IAAI,MAAM;CAQ5C"}

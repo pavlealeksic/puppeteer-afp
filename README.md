@@ -1,598 +1,206 @@
-# Puppeteer AFP (Anti-Fingerprint Protection) 🛡️
+# puppeteer-afp 🛡️
 
-[![CI](https://github.com/pavlealeksic/puppeteer-afp/actions/workflows/ci.yml/badge.svg)](https://github.com/pavlealeksic/puppeteer-afp/actions/workflows/ci.yml)
-[![npm version](https://badge.fury.io/js/puppeteer-afp.svg)](https://badge.fury.io/js/puppeteer-afp)
-[![Downloads](https://img.shields.io/npm/dm/puppeteer-afp)](https://www.npmjs.com/package/puppeteer-afp)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+> Coherent, persistable anti-fingerprinting for Puppeteer.
 
-> **Production-ready anti-fingerprinting protection for Puppeteer with real-world testing validation**
-
-A comprehensive, enterprise-grade solution to prevent websites from fingerprinting your Puppeteer browser instances. Extensively tested against real-world detection services with **44% overall evasion rate** against advanced fingerprinting systems, including **100% success** against basic detection services like Sannysoft.
-
-## 🎯 Real-World Performance
-
-**Tested against 8 major detection services:**
-- ✅ **Sannysoft**: 100% (57/57 tests passed)
-- ✅ **Audio Fingerprint Protection**: 100% success  
-- ✅ **Canvas Tampering Detection**: 100% undetected
-- 🟡 **Cover Your Tracks (EFF)**: 50% partial success
-- 🔴 **Advanced Services**: Pixelscan, F.vision, CreepJS (under development)
-
-**Overall Grade: 🟠 FAIR (44% average)**
-
-## 🚀 Features
-
-### Core Protection Systems
-- **🎨 Canvas Protection** - Advanced noise injection with consistency management
-- **🎮 WebGL Protection** - Complete parameter spoofing with vendor/renderer masking
-- **🎵 Audio Protection** - AudioContext and AnalyserNode fingerprint modification
-- **🔤 Font Protection** - Dynamic font metric spoofing with realistic variance
-- **💾 Hardware Protection** - CPU cores, memory, and device capability spoofing
-- **🖥️ Screen Protection** - Resolution, color depth, and pixel ratio customization
-- **📡 WebRTC Protection** - Complete WebRTC leak prevention with IP masking
-- **🌐 Language/Timezone Protection** - Geolocation and locale fingerprint spoofing
-- **🔌 Plugin Protection** - Realistic browser plugin and MIME type simulation
-- **📶 Connection Protection** - Network timing and connection type spoofing
-
-### Advanced Evasion Systems
-- **🤖 Anti-Bot Detection** - WebDriver property hiding and automation signature removal
-- **🛡️ Enhanced Navigator Protection** - Complete navigator object consistency
-- **🎭 Phantom/Selenium Evasion** - Advanced automation framework detection evasion
-- **🔍 Creep.js Evasion** - Specialized protection against advanced fingerprinting
-- **📊 Pixel Scan Protection** - Fingerprint consistency validation evasion
-- **🚫 Chrome DevTools Detection** - Development tools presence masking
-
-### Enterprise Features
-- **🔄 Dynamic Fingerprint Rotation** - Automatic or manual fingerprint changes
-- **🎯 Browser Profile System** - Pre-configured Chrome, Firefox, Safari, Edge profiles
-- **🧪 Real-World Testing Suite** - Continuous validation against detection services
-- **📈 Fingerprint Consistency Management** - Correlated value generation system
-- **⚡ Engine Emulation** - JavaScript, CSS, DOM, Hardware, Network engine spoofing
-- **🔧 Comprehensive Configuration** - 50+ customizable protection parameters
-- **📝 Full TypeScript Support** - Complete type definitions and IntelliSense
-- **📊 Performance Monitoring** - Built-in logging and performance metrics
-
-## 📦 Installation
+**One seed → one internally-coherent browser identity.** Persist the seed (or the
+whole fingerprint) and you reproduce the *exact same* browser across sessions.
+The coherence engine derives timezone, locale, WebRTC IP and geolocation from a
+proxy's egress IP so nothing ever contradicts — the cross-checks that detectors
+like CreepJS rely on simply line up.
 
 ```bash
-# Using npm
 npm install puppeteer-afp
-
-# Using yarn
-yarn add puppeteer-afp
-
-# Using pnpm
-pnpm add puppeteer-afp
 ```
 
-## 🏃 Quick Start
+> Requires Node ≥ 16 and `puppeteer` (peer dependency) ≥ 10. Zero runtime
+> dependencies.
 
-### Basic Usage
+---
 
-```typescript
+## Why v3 is different
+
+| | v3 (this) | typical stealth plugins |
+| --- | --- | --- |
+| **Coherence** | Every value derives from one seed; timezone/locale/IP/GPU never disagree | Independent patches that can contradict |
+| **Persistence** | Built-in **fingerprint vault** — reload an identity verbatim next session | None / DIY |
+| **Proxy awareness** | Auto-derives geo/timezone/WebRTC-IP from the proxy egress IP | None |
+| **Stealth runtime** | Single `Function.prototype.toString` trap; properties patched on their real prototype; `Proxy`-preserved `name`/`length` | Often leak via `toString`, own-properties, or `Object.keys` overrides |
+| **Footprint** | No `window.*` markers — toolkit lives in closure scope | Frequently leaves global hooks |
+
+## Quick start
+
+```ts
 import puppeteer from 'puppeteer';
 import { protectPage } from 'puppeteer-afp';
 
 const browser = await puppeteer.launch();
 const page = await browser.newPage();
 
-// Protect the page with default settings
-await protectPage(page);
+await protectPage(page, { profile: 'desktop-chrome-win' });
 
-// Now browse normally - the page is protected!
-await page.goto('https://example.com');
+await page.goto('https://abrahamjuliot.github.io/creepjs/');
 ```
 
-### Using Predefined Profiles
+`protectPage` applies both **CDP-level emulation** (user-agent + Client Hints at
+the network layer, timezone, geolocation, viewport) **and** the in-page JS patch,
+so the spoof is consistent from the HTTP headers all the way to `navigator`.
 
-```typescript
-import { protectedBrowser, getProfile } from 'puppeteer-afp';
+## Persistent identity (the vault)
 
-const browser = await puppeteer.launch();
-const chromeProfile = getProfile('chrome');
+```ts
+import { protectPage, FingerprintVault, generateFingerprint } from 'puppeteer-afp';
 
-// Create a protected browser with Chrome profile
-const pBrowser = await protectedBrowser(browser, chromeProfile.options);
-const page = await pBrowser.newProtectedPage();
+const vault = new FingerprintVault(); // ~/.puppeteer-afp by default
 
-await page.goto('https://example.com');
+// Same identity every run for this account:
+const fingerprint = vault.loadOrCreate('account-42', () =>
+  generateFingerprint({ seed: 'account-42', profile: 'desktop-chrome-mac' }),
+);
+
+await protectPage(page, { fingerprint });
 ```
 
-### Advanced Configuration
+## Proxy + geo coherence
 
-```typescript
-import { protectPage, generateRandomOptions } from 'puppeteer-afp';
-
-const options = {
-  // Canvas fingerprinting protection
-  canvasRgba: [1, 2, -1, 0], // RGBA noise values (-5 to 5)
-  
-  // Hardware spoofing
-  hardwareConfig: {
-    hardwareConcurrency: 8,
-    deviceMemory: 16 // GB
-  },
-  
-  // Screen spoofing
-  screenConfig: {
-    width: 1920,
-    height: 1080,
-    availWidth: 1920,
-    availHeight: 1040,
-    colorDepth: 24,
-    pixelDepth: 24
-  },
-  
-  // WebGL spoofing
-  webglData: {
-    37445: 'Intel Inc.',
-    37446: 'Intel Iris Pro OpenGL Engine',
-    7936: 'WebKit'
-  },
-  
-  // Audio fingerprinting protection
-  audioFingerprint: {
-    getChannelDataIndexRandom: 0.7659530895341677,
-    getChannelDataResultRandom: 0.1234567890123456,
-    createAnalyserIndexRandom: 0.9876543210987654,
-    createAnalyserResultRandom: 0.5555555555555555
-  },
-  
-  // Font fingerprinting protection
-  fontFingerprint: {
-    noise: 1,
-    sign: 1
-  },
-  
-  // Timezone spoofing
-  timezoneConfig: {
-    timezone: 'America/New_York',
-    locale: 'en-US'
-  },
-  
-  // Language spoofing
-  languageConfig: {
-    languages: ['en-US', 'en'],
-    language: 'en-US',
-    platform: 'Win32'
-  },
-  
-  // Battery spoofing
-  batteryConfig: {
-    charging: false,
-    chargingTime: Infinity,
-    dischargingTime: 3600,
-    level: 0.8
-  },
-  
-  // Connection spoofing
-  connectionConfig: {
-    effectiveType: '4g',
-    rtt: 50,
-    downlink: 10,
-    saveData: false
-  },
-  
-  // User agent spoofing
-  userAgentConfig: {
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-    platform: 'Win32',
-    vendor: 'Google Inc.',
-    appVersion: '5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-  },
-  
-  // Feature toggles
-  features: {
-    canvas: true,
-    webgl: true,
-    audio: true,
-    font: true,
-    webrtc: true,
-    timezone: true,
-    screen: true,
-    battery: true,
-    hardware: true,
-    language: true,
-    plugins: true,
-    connection: true,
-    userAgent: true,
-    tcp: true,
-    dns: true
-  },
-  
-  // Advanced options
-  webRTCProtect: true,
-  enableLogging: true,
-  logLevel: 'info',
-  rotationInterval: 300000, // Rotate fingerprint every 5 minutes
-  profile: 'chrome'
-};
-
-await protectPage(page, options);
+```ts
+// Timezone, locale, languages, geolocation and the WebRTC public IP are all
+// resolved from the proxy's egress IP — automatically.
+await protectPage(page, { proxy: 'http://user:pass@host:8080' });
 ```
 
-## 🎭 Browser Profiles
+Prefer to set it explicitly / offline? Use a country:
 
-The library includes predefined profiles for popular browsers:
-
-```typescript
-import { getProfile } from 'puppeteer-afp';
-
-// Available profiles: 'chrome', 'firefox', 'safari', 'edge'
-const chromeProfile = getProfile('chrome');
-const firefoxProfile = getProfile('firefox');
-const safariProfile = getProfile('safari');
-const edgeProfile = getProfile('edge');
-
-// Use with protectedBrowser
-const pBrowser = await protectedBrowser(browser, chromeProfile.options);
+```ts
+import { geoFromCountry } from 'puppeteer-afp';
+await protectPage(page, { geo: geoFromCountry('DE') }); // Europe/Berlin, de-DE …
 ```
 
-## 🔄 Dynamic Fingerprint Rotation
+## Whole-browser protection
 
-Enable automatic fingerprint rotation to change fingerprints over time:
+```ts
+import { protectedBrowser } from 'puppeteer-afp';
 
-```typescript
-const options = {
-  rotationInterval: 300000, // 5 minutes in milliseconds
-  enableLogging: true
-};
-
-const protectedPage = await protectPage(page, options);
-
-// Manual rotation
-await protectedPage.rotateFingerprint();
-
-// Check current fingerprint
-const currentFingerprint = protectedPage.getCurrentFingerprint();
+const pb = await protectedBrowser(browser, { profile: 'mobile-ios-iphone' });
+const page = await pb.newProtectedPage();   // shares the identity
+// Pop-ups / window.open targets are auto-protected too.
 ```
 
-## 🎲 Random Fingerprint Generation
+## Profiles
 
-Generate completely random fingerprints:
+`desktop-chrome-win` · `desktop-chrome-mac` · `desktop-edge-win` ·
+`desktop-firefox-win` · `desktop-safari-mac` · `mobile-android-chrome` ·
+`mobile-ios-iphone`
 
-```typescript
-import { generateRandomOptions } from 'puppeteer-afp';
-
-// Generate random protection options
-const randomOptions = generateRandomOptions();
-await protectPage(page, randomOptions);
-
-// Each call generates different values
-const anotherRandom = generateRandomOptions();
+```ts
+import { listProfiles } from 'puppeteer-afp';
+listProfiles();
 ```
 
-## 🧪 Real-World Testing & Validation
+Or constrain generation without a named profile:
 
-### Built-in Test Suite
-
-Run the comprehensive detection test suite to validate your protection:
-
-```typescript
-import { RealWorldDetectorTester } from 'puppeteer-afp';
-
-const tester = new RealWorldDetectorTester(true);
-await tester.initialize();
-
-// Run all detection services
-const results = await tester.runAllTests();
-console.log(`Overall Score: ${results.overallScore}%`);
-console.log(`Tests Passed: ${results.passedTests}/${results.totalTests}`);
+```ts
+await protectPage(page, { device: 'mobile', os: 'android' });
 ```
 
-### Tested Detection Services
+## Protected surfaces
 
-The plugin is continuously validated against these real-world services:
+navigator (UA + Client Hints) · webdriver/automation cloak · canvas · WebGL
+(vendor/renderer + readPixels) · audio · fonts · **WebRTC IP** · screen ·
+hardware (cores/memory/touch) · timezone & `Intl` · languages · battery ·
+plugins/mimeTypes · network connection · media devices · permissions ·
+getClientRects · speech voices · touch · **media codecs** · **Web Workers**.
 
-**✅ Passing Services:**
-- **[Sannysoft](https://bot.sannysoft.com/)** - Bot detection (100% - 57/57 tests)
-- **[Audio Fingerprint](https://audiofingerprint.openwpm.com/)** - Audio context detection (100%)
-- **[Canvas Blocker](https://kkapsner.github.io/CanvasBlocker/test/)** - Canvas tampering (100%)
+Toggle any of them:
 
-**🟡 Partial Success:**
-- **[Cover Your Tracks](https://coveryourtracks.eff.org/)** - EFF privacy test (50%)
-
-**🔴 Advanced Challenges:**
-- **[Pixelscan](https://pixelscan.net/)** - Fingerprint consistency (under development)
-- **[F.vision](https://f.vision/)** - Advanced privacy testing (under development)
-- **[CreepJS](https://abrahamjuliot.github.io/creepjs/)** - Sophisticated detection (under development)
-
-### Manual Testing Sites
-
-Additional sites for testing your protection:
-
-- [WebBrowserTools](https://webbrowsertools.com) - Comprehensive fingerprinting tests
-- [AmIUnique](https://amiunique.org) - Browser uniqueness testing
-- [BrowserLeaks](https://browserleaks.com) - Various leak detection tests
-- [FingerprintJS Demo](https://fingerprintjs.com/demo) - Advanced fingerprinting demo
-- [Device Info](https://www.deviceinfo.me/) - Hardware fingerprinting tests
-
-## 📋 API Reference
-
-### Functions
-
-#### `protectPage(page, options?)`
-Protects a single Puppeteer page with anti-fingerprinting measures.
-
-- `page`: Puppeteer Page instance
-- `options?`: Protection options (optional)
-- Returns: `Promise<ProtectedPage>`
-
-#### `protectedBrowser(browser, options?)`
-Creates a browser instance that automatically protects new pages.
-
-- `browser`: Puppeteer Browser instance  
-- `options?`: Default protection options (optional)
-- Returns: `Promise<ProtectedBrowser>`
-
-#### `getProfile(name)`
-Retrieves a predefined browser profile.
-
-- `name`: Profile name ('chrome' | 'firefox' | 'safari' | 'edge')
-- Returns: `FingerprintProfile`
-
-#### `generateRandomOptions()`
-Generates random protection options.
-
-- Returns: `ProtectionOptions`
-
-### Types
-
-The library exports comprehensive TypeScript types:
-
-```typescript
-import {
-  ProtectionOptions,
-  ProtectedPage,
-  ProtectedBrowser,
-  FingerprintProfile,
-  CanvasNoise,
-  WebGLData,
-  HardwareConfig,
-  ScreenConfig,
-  // ... and many more
-} from 'puppeteer-afp';
+```ts
+await protectPage(page, { features: { audio: false, webrtc: false } });
 ```
 
-## 🔧 Configuration Options
+### Expert protections
 
-### Canvas Protection
-```typescript
-canvasRgba: [number, number, number, number] // RGBA noise values (-5 to 5)
+**WebRTC IP masking.** The real leak is the asynchronously-gathered ICE
+candidates (a STUN `srflx` candidate exposes your true public IP, bypassing the
+proxy). This library intercepts every path — candidate events, `createOffer`
+/`createAnswer` SDP, `localDescription`, and `getStats()`:
+
+```ts
+// 'fake' (default): rewrite public IPs to the proxy egress, drop leaky
+//   candidates when no egress is known, keep private mDNS host candidates.
+// 'block': discover no IPs at all.  'passthrough': leave WebRTC untouched.
+await protectPage(page, { proxy: 'http://user:pass@host:8080', webrtcPolicy: 'fake' });
 ```
 
-### WebGL Protection
-```typescript
-webglData: {
-  [paramId: number]: number | string | { [key: number]: number }
-}
-```
+**Web Worker realm.** Detectors spawn a Worker to read an un-patched
+`navigator` (e.g. the real `hardwareConcurrency`). The patch is propagated into
+`Worker`/`SharedWorker` scope, so workers report the spoofed identity too —
+including OffscreenCanvas/WebGL noise.
 
-### Hardware Protection
-```typescript
-hardwareConfig: {
-  hardwareConcurrency: number, // CPU cores (1-128)
-  deviceMemory: number // RAM in GB (0.25, 0.5, 1, 2, 4, 8, 16, 32, 64)
-}
-```
+**Media-codec coherence.** `canPlayType` / `MediaSource.isTypeSupported` are
+adjusted per claimed browser (e.g. Safari reports no WebM but supports HEVC),
+removing a codec-based engine tell.
 
-### Screen Protection
-```typescript
-screenConfig: {
-  width: number,
-  height: number,
-  availWidth: number,
-  availHeight: number,
-  colorDepth: number, // 8, 16, 24, 30, 32
-  pixelDepth: number  // 8, 16, 24, 30, 32
-}
-```
+## API
 
-### Feature Toggles
-```typescript
-features: {
-  canvas?: boolean,
-  webgl?: boolean,
-  audio?: boolean,
-  font?: boolean,
-  webrtc?: boolean,
-  timezone?: boolean,
-  screen?: boolean,
-  battery?: boolean,
-  hardware?: boolean,
-  language?: boolean,
-  plugins?: boolean,
-  connection?: boolean,
-  userAgent?: boolean,
-  tcp?: boolean,
-  dns?: boolean
-}
-```
+| Export | Purpose |
+| --- | --- |
+| `protectPage(page, options)` | Protect a single page → `ProtectedPage` |
+| `protectedBrowser(browser, options)` | Protect a whole browser → `ProtectedBrowser` |
+| `generateFingerprint(options)` | Build a `Fingerprint` from a seed/options |
+| `FingerprintVault` | Persist / reload fingerprints to disk |
+| `buildInjectionScript(fp, features?)` | Get the raw injection script (advanced) |
+| `geoFromCountry` / `resolveGeoFromIp` / `geoForProxy` | Coherence helpers |
+| `Afp` | Lower-level orchestrator (`Afp.create`, `applyToPage`, `rotateFingerprint`) |
 
-## 🛠️ Development
+`AfpOptions`: `seed`, `profile`, `device`, `browser`, `os`, `geo`, `proxy`,
+`fingerprint`, `features`, `rotationInterval`, `logLevel`.
+
+A `ProtectedPage` exposes `.fingerprint` (read-only) and
+`.rotateFingerprint()` (re-randomises canvas/audio/WebGL noise without changing
+the stable identity).
+
+## How it stays coherent
+
+1. A seed feeds a deterministic PRNG.
+2. A device profile + the PRNG produce every value — and they're cross-derived
+   (languages lead with the locale, screen `avail*` fits the device, WebGL
+   matches the OS, etc.).
+3. The result is canonicalised to JSON, so a vault reload is byte-identical.
+4. At apply time the same values are pushed through both CDP and an in-page
+   patch, keeping the network and JS layers in agreement.
+
+## Development
 
 ```bash
-# Clone the repository
-git clone https://github.com/pavlealeksic/puppeteer-afp.git
-cd puppeteer-afp
-
-# Install dependencies
 npm install
-
-# Build the project
-npm run build
-
-# Run tests
-npm run test
-
-# Run tests with coverage
-npm run test:coverage
-
-# Run integration tests
-npm run test:integration
-
-# Run linting
-npm run lint
-
-# Format code
-npm run format
-
-# Type checking
-npm run typecheck
+npm run build        # tsc → dist/
+npm test             # unit tests (deterministic, browser-free)
+node scripts/smoke.js  # live headless browser verification
 ```
 
-## 🧪 Testing
+## Limitations
 
-The library includes comprehensive testing infrastructure:
+The browser engine is **always Chromium** (that's what Puppeteer drives). So:
 
-### Test Suites
-- **Unit Tests** - Individual component validation
-- **Integration Tests** - Real fingerprinting scenario testing
-- **Real-World Tests** - Live detection service validation
-- **Validation Tests** - Configuration and type checking
-- **Performance Tests** - Speed and memory impact measurement
+- **Chromium profiles** (`desktop-chrome-*`, `desktop-edge-win`,
+  `mobile-android-chrome`) are engine-accurate and the most robust targets.
+- **Firefox / Safari / iOS profiles** spoof at the UA + JS-API level — the
+  library strips Chromium-only surfaces (`userAgentData`, `deviceMemory`,
+  `navigator.connection`, `getBattery`) for coherence — but a few engine tells
+  can't be hidden from injected JS. Most notably, Chromium installs
+  `window.chrome` as a **non-configurable** property before any page script
+  runs, so it cannot be removed. Engine-level detectors can therefore still tell
+  these are Chromium. Use them when the detector checks UA/locale/screen/canvas
+  surfaces; prefer Chromium profiles against deep engine fingerprinting.
 
-### Running Tests
+This is an inherent constraint of every Puppeteer/Chromium-based stealth tool,
+not specific to this library.
 
-```bash
-# Run all tests (including real-world validation)
-npm run test
+## Disclaimer
 
-# Run with coverage report  
-npm run test:coverage
+For authorised testing, privacy research, and automation of sites you own or
+have permission to access. Respect each site's Terms of Service and applicable
+law.
 
-# Run specific test categories
-npm run test:integration
-npm run test -- --testNamePattern="Real-World"
-npm run test -- --testPathPattern=validation
+## License
 
-# Test against specific detection services
-npm run test -- --testNamePattern="Sannysoft"
-npm run test -- --testNamePattern="should run complete detection test suite"
-```
-
-### Continuous Integration
-
-The project includes automated testing against real detection services:
-
-```bash
-# Manual validation run
-node test/manual-validation.js
-
-# Performance benchmarks
-npm run benchmark
-
-# Type checking
-npm run typecheck
-```
-
-## 📊 Browser Compatibility & Performance
-
-### Supported Browsers
-- ✅ **Chrome/Chromium** (recommended) - Full feature support
-- ✅ **Chrome Headless** - Complete stealth mode compatibility  
-- ✅ **Edge** - Full compatibility with Chromium-based Edge
-- 🟡 **Firefox** - Core features supported (some limitations)
-- ⚠️ **Safari** - Basic protection (limited advanced features)
-
-### Performance Metrics
-- **Injection Time**: < 50ms per page
-- **Memory Overhead**: < 5MB additional RAM usage
-- **Fingerprint Generation**: < 10ms for complete fingerprint
-- **Real-World Test Suite**: ~5 minutes for full validation
-- **Success Rate**: 44% overall, 100% on basic detection services
-
-## 🔒 Security & Best Practices
-
-### Legitimate Use Cases
-This library is designed for **ethical and legitimate purposes**:
-
-- ✅ **Privacy Protection** - Prevent unwanted tracking and profiling
-- ✅ **Security Testing** - Test anti-bot and detection systems
-- ✅ **Research** - Academic and security research projects
-- ✅ **Quality Assurance** - Validate web application behavior across different fingerprints
-- ✅ **Compliance Testing** - Ensure GDPR/privacy regulation compliance
-
-### Best Practices
-- **Respect Terms of Service** - Always comply with website terms and conditions
-- **Rate Limiting** - Use reasonable delays between requests  
-- **Responsible Usage** - Don't overwhelm services or cause disruption
-- **Legal Compliance** - Ensure usage complies with local laws and regulations
-- **Ethical Guidelines** - Use for defensive security, not malicious activities
-
-## 📈 Roadmap & Future Development
-
-### Version 3.0 (Planned)
-- 🎯 **Enhanced Detection Evasion** - Improve success rate against Pixelscan, CreepJS
-- 🤖 **ML-Based Fingerprint Generation** - AI-powered realistic fingerprint creation  
-- 🔄 **Advanced Rotation Strategies** - Behavioral pattern learning and adaptation
-- 📊 **Real-Time Analytics** - Detection success monitoring and reporting
-- 🌐 **Cloud Fingerprint Database** - Shared fingerprint profiles for better consistency
-
-### Current Focus Areas
-- **Pixelscan Integration** - Improving fingerprint consistency validation
-- **CreepJS Lies Reduction** - Minimizing detected inconsistencies
-- **Performance Optimization** - Reducing injection overhead
-- **Documentation Enhancement** - More examples and use cases
-
-## 🆕 Recent Updates (v2.1.0)
-
-### Major Improvements
-- ✅ **Real-World Testing Integration** - Complete test suite against 8 detection services
-- ✅ **Enhanced Plugin Protection** - Fixed PluginArray implementation with 5 realistic plugins  
-- ✅ **Improved Fingerprint Consistency** - Better correlation between hardware, screen, and browser APIs
-- ✅ **Advanced WebDriver Evasion** - Successfully hiding automation signatures
-- ✅ **Canvas Protection Fixes** - Resolved infinite recursion issues in toDataURL methods
-- ✅ **JavaScript Syntax Fixes** - Fixed regex pattern escaping in template literals
-- ✅ **Production Ready** - Extensive debugging and error handling improvements
-
-### Performance Enhancements  
-- 🚀 **Faster Injection** - Reduced page protection time by 40%
-- 🚀 **Memory Optimization** - 60% reduction in memory footprint
-- 🚀 **Error Recovery** - Robust error handling with graceful degradation
-- 🚀 **Logging System** - Comprehensive monitoring and debugging capabilities
-
-### Test Results
-- **Sannysoft**: 100% success rate (57/57 tests passing)
-- **Audio Fingerprinting**: Complete protection achieved
-- **Canvas Tampering**: 100% detection evasion
-- **Overall Grade**: 44% average against advanced detection services
-
-## 📈 Changelog
-
-See [CHANGELOG.md](CHANGELOG.md) for detailed changes.
-
-## 🤝 Contributing
-
-Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests
-5. Submit a pull request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 👨‍💻 Author
-
-**Pavle Aleksic**
-- GitHub: [@pavlealeksic](https://github.com/pavlealeksic)
-- Twitter: [@aleksicpaja](https://twitter.com/aleksicpaja)
-- Email: pavlealeksic@live.com
-
-## ⭐ Show Your Support
-
-If this project helped you, please consider giving it a ⭐ on GitHub!
-
-## 🙏 Acknowledgments
-
-- Puppeteer team for the excellent browser automation library
-- The open-source community for inspiration and contributions
-- Security researchers who identified fingerprinting techniques
-
----
-
-<p align="center">Made with ❤️ by Pavle Aleksic</p>
+MIT © Pavle Aleksic
