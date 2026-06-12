@@ -1,6 +1,6 @@
 {
   "name": "puppeteer-afp",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Coherent, persistable anti-fingerprinting for Puppeteer. One seed → one consistent browser identity, with proxy/timezone/geo coherence and a fingerprint vault.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -55,7 +55,7 @@
   },
   "homepage": "https://github.com/pavlealeksic/puppeteer-afp#readme",
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=18.0.0"
   },
   "dependencies": {},
   "devDependencies": {

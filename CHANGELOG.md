@@ -3,7 +3,7 @@
 All notable changes to this project are documented here. This project adheres
 to [Semantic Versioning](https://semver.org/).
 
-## [3.0.0] - 2026-06-12
+## [3.0.1] - 2026-06-12
 
 A complete ground-up rewrite. The library is now built around a single idea: one
 `seed` deterministically produces one internally-coherent browser identity that
@@ -17,7 +17,7 @@ can be persisted and reproduced byte-for-byte.
   `features`, `webrtcPolicy`, `rotationInterval`, `logLevel`). The old
   `ProtectionOptions` shape, engine-emulation flags, and per-protection exports
   are gone.
-- **Node ≥ 16** required (was 14).
+- **Node ≥ 18** required (was 14).
 - **Zero runtime dependencies** — `winston` and `joi` removed in favour of a tiny
   built-in logger.
 - `dist/` is no longer committed; it is built on publish.

@@ -12,7 +12,7 @@ like CreepJS rely on simply line up.
 npm install puppeteer-afp
 ```
 
-> Requires Node ≥ 16 and `puppeteer` (peer dependency) ≥ 10. Zero runtime
+> Requires Node ≥ 18 and `puppeteer` (peer dependency) ≥ 10. Zero runtime
 > dependencies.
 
 ---
